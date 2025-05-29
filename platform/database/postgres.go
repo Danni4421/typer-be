@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"typer/package/utils"
+	"typer/platform/migration"
 
 	_ "github.com/lib/pq"
 )
@@ -46,6 +47,8 @@ func ConnectPostgres() {
 	if err := db.Ping(); err != nil {
 		log.Fatal(err)
 	}
+
+	migration.AutoMigrate(db)
 
 	DB = db
 }
