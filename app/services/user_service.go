@@ -1,11 +1,51 @@
 package services
 
-import "database/sql"
+import (
+	"database/sql"
+	"time"
+	"typer/app/dto"
+	"typer/app/models"
+	"typer/package/exceptions"
+
+	"golang.org/x/crypto/bcrypt"
+)
 
 type UserService struct {
-	db *sql.DB
+	DB *sql.DB
 }
 
-func (s *UserService) CreateUser() {
-	
+func (s *UserService) CreateUser(user *models.User) (*dto.RegisterUserResponse, error) {
+	var exists bool
+	err := s.DB.QueryRow("SELECT EXISTS(SELECT 1 FROM users WHERE username = $1 OR email = $2)", user.Username, user.Email).Scan(&exists)
+	if err != nil {
+		return nil, err
+	}
+	if exists {
+		return nil, &exceptions.ClientError{
+			Code:    409,
+			Message: "Username or email already exists",
+		}
+	}
+
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(user.Password), bcrypt.DefaultCost)
+	if err != nil {
+		return nil, err
+	}
+
+	var id int
+	err = s.DB.QueryRow(
+		"INSERT INTO users (username, name, email, password) VALUES ($1, $2, $3, $4) RETURNING id",
+		user.Username, user.Name, user.Email, hashedPassword,
+	).Scan(&id)
+	if err != nil {
+		return nil, err
+	}
+
+	return &dto.RegisterUserResponse{
+		ID:        id,
+		Username:  user.Username,
+		Name:      user.Name,
+		Email:     user.Email,
+		CreatedAt: time.Now().Format("2006-01-02 15:04:05"),
+	}, nil
 }

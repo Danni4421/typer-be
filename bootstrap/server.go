@@ -2,8 +2,9 @@ package bootstrap
 
 import (
 	"fmt"
-	"github.com/gofiber/fiber/v2"
 	"typer/platform/database"
+
+	"github.com/gofiber/fiber/v2"
 )
 
 func listenOnPanic() {
@@ -18,6 +19,7 @@ func App() {
 	app := fiber.New()
 
 	database.ConnectPostgres()
+	SetupControllers()
 
 	bindRoutes(app)
 

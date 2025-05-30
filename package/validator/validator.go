@@ -12,7 +12,7 @@ type Validatable interface {
 	ErrorMessages() map[string]string
 }
 
-func Validate(ctx *fiber.Ctx, dto any) error{
+func Validate(ctx *fiber.Ctx, dto interface{}) error{
 	if err := ctx.BodyParser(dto); err != nil {
 		ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"error": "Invalid request body",

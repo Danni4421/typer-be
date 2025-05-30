@@ -37,18 +37,11 @@ func ConnectPostgres() {
 		log.Fatal(err)
 	}
 
-	defer func(db *sql.DB) {
-		err := db.Close()
-		if err != nil {
-			log.Fatal(err)
-		}
-	}(db)
-
 	if err := db.Ping(); err != nil {
 		log.Fatal(err)
 	}
 
-	migration.AutoMigrate(db)
-
 	DB = db
+
+	migration.AutoMigrate(db)
 }
