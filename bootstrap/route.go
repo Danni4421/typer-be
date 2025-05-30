@@ -32,4 +32,5 @@ func bindRoutes(app *fiber.App) {
 	})
 
 	app.Post("/users", userController.RegisterNewUser)
+	app.Get("/users/:username", userController.GetUserByUsername)
 }

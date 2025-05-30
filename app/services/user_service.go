@@ -49,3 +49,18 @@ func (s *UserService) CreateUser(user *models.User) (*dto.RegisterUserResponse, 
 		CreatedAt: time.Now().Format("2006-01-02 15:04:05"),
 	}, nil
 }
+
+func (s *UserService) GetUserByUsername(username string) (*models.User, error) {
+	var user models.User
+	err := s.DB.QueryRow("SELECT id, username, name, email, created_at FROM users WHERE username = $1", username).Scan(&user.ID, &user.Username, &user.Name, &user.Email, &user.CreatedAt)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, &exceptions.ClientError{
+				Code:    404,
+				Message: "User not found",
+			}
+		}
+		return nil, err
+	}
+	return &user, nil
+}

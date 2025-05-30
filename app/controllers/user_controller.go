@@ -50,3 +50,32 @@ func (u *UserController) RegisterNewUser(c *fiber.Ctx) error {
 		"data":    createdUser,
 	})
 }
+
+func (u *UserController) GetUserByUsername(c *fiber.Ctx) error {
+	username := c.Params("username")
+
+	if username == "" {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"status":  "error",
+			"message": "Invalid user username",
+		})
+	}
+
+	user, err := u.UserService.GetUserByUsername(username)
+
+	if err != nil {
+		if reflect.TypeOf(err) == reflect.TypeOf(exceptions.ClientError{}) {
+			return c.Status(err.(*exceptions.ClientError).Code).JSON(err.(*exceptions.ClientError).ToMap())
+		}
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"status":  "error",
+			"message": "Internal server error",
+			"errors":  err.Error(),
+		})
+	}
+
+	return c.JSON(fiber.Map{
+		"status": "success",
+		"data":   user,
+	})
+}
