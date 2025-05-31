@@ -21,6 +21,7 @@ func BindPublicRoutes(app *fiber.App) {
 
 	// Auth
 	api.Post("/auth/login", typer.AuthController.Login)
+	api.Put("/auth/refresh", typer.AuthController.RefreshToken)
 	api.Post("/auth/register", typer.UserController.RegisterNewUser)
 
 	// Users
@@ -30,4 +31,7 @@ func BindPublicRoutes(app *fiber.App) {
 	api.Get("/languages", typer.LanguageController.GetAllLanguages)
 	api.Get("/languages/:name", typer.LanguageController.GetLanguageByName)
 	api.Get("/languages/:code/words/random", typer.WordController.GetRandomWords)
+
+	// Typing
+	api.Post("/typing/calculate", typer.TypingController.CalculateTypingTestScore)
 }

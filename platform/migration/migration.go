@@ -10,4 +10,5 @@ func AutoMigrate(db *sql.DB) {
 	migrate(db, "sessions", models.Session{})
 	migrate(db, "languages", models.Language{})
 	migrate(db, "words", models.Word{})
+	migrate(db, "typing_logs", models.TypingLog{})
 }

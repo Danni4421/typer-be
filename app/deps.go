@@ -11,6 +11,7 @@ var (
 	AuthController     *controllers.AuthController
 	LanguageController *controllers.LanguageController
 	WordController     *controllers.WordController
+	TypingController   *controllers.TypingController
 )
 
 func SetupControllers() {
@@ -37,6 +38,10 @@ func SetupControllers() {
 		DB: database.DB,
 	}
 
+	typingService := services.TypingService{
+		DB: database.DB,
+	}
+
 	// Define controllers
 	// The controller are initialized with their respective services
 	// Then they are assigned to the endpoints in the bindRoutes function
@@ -56,5 +61,10 @@ func SetupControllers() {
 	WordController = &controllers.WordController{
 		LanguageService: &languageService,
 		WordService:     &wordService,
+	}
+
+	TypingController = &controllers.TypingController{
+		LanguageService: &languageService,
+		TypeService:     &typingService,
 	}
 }

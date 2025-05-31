@@ -11,7 +11,7 @@ type WordService struct {
 	DB *sql.DB
 }
 
-func (s *WordService) StoreWords(words []string, languageID int) error {
+func (s *WordService) StoreWords(words []string, languageID uint) error {
 	query := `INSERT INTO words (word, language_id, length) VALUES ($1, $2, $3)`
 
 	for _, word := range words {
@@ -31,7 +31,7 @@ func (s *WordService) StoreWords(words []string, languageID int) error {
 	return nil
 }
 
-func (s *WordService) GetWordsByLanguage(languageID int) ([]string, error) {
+func (s *WordService) GetWordsByLanguage(languageID uint) ([]string, error) {
 	query := `SELECT word FROM words WHERE language_id = $1`
 	rows, err := s.DB.Query(query, languageID)
 	if err != nil {
@@ -64,7 +64,7 @@ func (s *WordService) GetWordsByLanguage(languageID int) ([]string, error) {
 	return words, nil
 }
 
-func (s *WordService) GetRandomWords(id int, limit int) ([]string, error) {
+func (s *WordService) GetRandomWords(id uint, limit int) ([]string, error) {
 	query := `SELECT word FROM words WHERE language_id = $1 ORDER BY RANDOM() LIMIT $2`
 	rows, err := s.DB.Query(query, id, limit)
 	if err != nil {

@@ -19,4 +19,7 @@ func BindAuthenticatedRoutes(app *fiber.App) {
 	// Words
 	api.Post("/languages/:code/words", typer.WordController.StoreWords)
 	api.Get("/languages/:code/words", typer.WordController.GetWordsByLanguage)
+
+	// Typing
+	api.Post("/languages/:code/typing-log", typer.TypingController.StoreTypingTestLog)
 }
