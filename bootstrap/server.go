@@ -33,7 +33,7 @@ func App() {
 
 	// Register global middleware
 	app.Use(middleware.CORSMiddleware())
-	app.Use(middleware.CSRFMiddleware())
+	// app.Use(middleware.CSRFMiddleware())
 	app.Use(middleware.LoggerMiddleware())
 
 	// Bind routes to the app

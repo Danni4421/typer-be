@@ -7,4 +7,5 @@ import (
 
 func AutoMigrate(db *sql.DB) {
 	migrate(db, "users", models.User{})
+	migrate(db, "sessions", models.Session{})
 }

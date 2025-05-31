@@ -20,3 +20,13 @@ type LoggedInUser struct {
 	Token        string `json:"token"`
 	RefreshToken string `json:"refresh_token"`
 }
+
+type RefreshTokenRequest struct {
+	RefreshToken string `json:"refresh_token" validate:"required"`
+}
+
+func (r *RefreshTokenRequest) ErrorMessages() map[string]string {
+	return map[string]string{
+		"RefreshToken.required": "Refresh token is required",
+	}
+}

@@ -2,6 +2,7 @@ package services
 
 import (
 	"database/sql"
+	"log"
 	"typer/app/models"
 	"typer/package/exceptions"
 
@@ -40,4 +41,19 @@ func (s *AuthService) ValidateCredentials(email, password string) (int, error) {
 	}
 
 	return user.ID, nil
+}
+
+func (s *AuthService) Logout(userID int) error {
+	log.Println("Logouting user sessions with id:", userID)
+
+	deleteQuery := `DELETE FROM sessions WHERE user_id = $1`
+	_, err := s.DB.Exec(deleteQuery, userID)
+	if err != nil {
+		return &exceptions.ServerError{
+			Code:    500,
+			Message: "Failed to invalidate tokens",
+		}
+	}
+
+	return nil
 }
