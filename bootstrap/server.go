@@ -2,7 +2,12 @@ package bootstrap
 
 import (
 	"fmt"
+
+	typer "typer/app"
+	"typer/package/configs"
 	"typer/platform/database"
+	"typer/platform/middleware"
+	"typer/platform/routes"
 
 	"github.com/gofiber/fiber/v2"
 )
@@ -16,13 +21,26 @@ func listenOnPanic() {
 func App() {
 	defer listenOnPanic()
 
-	app := fiber.New()
+	// Load the configuration from the config file
+	appConfig := configs.GetFiberConfig()
 
+	//  Create a new Fiber app with custom configuration
+	app := fiber.New(appConfig)
+
+	// Setup the database connection and controllers
 	database.ConnectPostgres()
-	SetupControllers()
+	typer.SetupControllers()
 
-	bindRoutes(app)
+	// Register global middleware
+	app.Use(middleware.CORSMiddleware())
+	app.Use(middleware.CSRFMiddleware())
+	app.Use(middleware.LoggerMiddleware())
 
+	// Bind routes to the app
+	routes.BindAuthenticatedRoutes(app)
+	routes.BindPublicRoutes(app)
+
+	// Start the server and listen on port 3000 by default
 	err := app.Listen(":3000")
 
 	if err != nil {

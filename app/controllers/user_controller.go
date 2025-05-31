@@ -6,6 +6,7 @@ import (
 	"typer/app/models"
 	"typer/app/services"
 	"typer/package/exceptions"
+	"typer/package/utils"
 	"typer/package/validator"
 
 	"github.com/gofiber/fiber/v2"
@@ -62,6 +63,35 @@ func (u *UserController) GetUserByUsername(c *fiber.Ctx) error {
 	}
 
 	user, err := u.UserService.GetUserByUsername(username)
+
+	if err != nil {
+		if reflect.TypeOf(err) == reflect.TypeOf(exceptions.ClientError{}) {
+			return c.Status(err.(*exceptions.ClientError).Code).JSON(err.(*exceptions.ClientError).ToMap())
+		}
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"status":  "error",
+			"message": "Internal server error",
+			"errors":  err.Error(),
+		})
+	}
+
+	return c.JSON(fiber.Map{
+		"status": "success",
+		"data":   user,
+	})
+}
+
+func (u *UserController) GetCurrentUser(c *fiber.Ctx) error {
+	userID, ok := utils.ParseUserIDFromLocals(c)
+
+	if !ok {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"status":  "error",
+			"message": "Invalid user ID",
+		})
+	}
+
+	user, err := u.UserService.GetUserByID(userID)
 
 	if err != nil {
 		if reflect.TypeOf(err) == reflect.TypeOf(exceptions.ClientError{}) {

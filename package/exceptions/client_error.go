@@ -7,15 +7,15 @@ type ClientError struct {
 	Message string `json:"message"`
 }
 
+func (e *ClientError) Error() string {
+	return e.Message
+}
+
 func NewClientError(code int, message string) *ClientError {
 	return &ClientError{
 		Code:    code,
 		Message: message,
 	}
-}
-
-func (e *ClientError) Error() string {
-	return e.Message
 }
 
 func (e *ClientError) StatusCode() int {

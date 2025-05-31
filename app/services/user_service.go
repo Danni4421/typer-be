@@ -64,3 +64,24 @@ func (s *UserService) GetUserByUsername(username string) (*models.User, error) {
 	}
 	return &user, nil
 }
+
+func (s *UserService) GetUserByID(userID int) (*models.User, error) {
+	var user models.User
+
+	err := s.DB.QueryRow(
+		`SELECT id, username, name, email, created_at FROM users WHERE id = $1`,
+		userID,
+	).Scan(&user.ID, &user.Username, &user.Name, &user.Email, &user.CreatedAt)
+
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, &exceptions.ClientError{
+				Code:    404,
+				Message: "User not found",
+			}
+		}
+		return nil, err
+	}
+
+	return &user, nil
+}
