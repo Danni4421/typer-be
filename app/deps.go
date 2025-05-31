@@ -6,8 +6,10 @@ import (
 	"typer/platform/database"
 )
 
-var UserController *controllers.UserController
-var AuthController *controllers.AuthController
+var (
+	UserController *controllers.UserController
+	AuthController *controllers.AuthController
+)
 
 func SetupControllers() {
 	// Define services
