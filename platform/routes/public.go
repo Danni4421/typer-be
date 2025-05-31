@@ -19,7 +19,15 @@ func BindPublicRoutes(app *fiber.App) {
 		})
 	})
 
+	// Auth
 	api.Post("/auth/login", typer.AuthController.Login)
 	api.Post("/auth/register", typer.UserController.RegisterNewUser)
+
+	// Users
 	api.Get("/users/:username", typer.UserController.GetUserByUsername)
+
+	// Words
+	api.Get("/languages", typer.LanguageController.GetAllLanguages)
+	api.Get("/languages/:name", typer.LanguageController.GetLanguageByName)
+	api.Get("/languages/:code/words/random", typer.WordController.GetRandomWords)
 }

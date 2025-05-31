@@ -29,16 +29,34 @@ func migrate(db *sql.DB, tableName string, model any) {
 
 	if tableExists(db, tableName) {
 		existingCols := getExistingColumns(db, tableName)
+
 		for col, colType := range columns {
 			if _, found := existingCols[col]; !found {
 				query := fmt.Sprintf("ALTER TABLE %s ADD COLUMN %s %s;", tableName, col, colType)
 				_, err := db.Exec(query)
 				if err != nil {
-					log.Fatalf("Failed to add column %s: %v", col, err)
+					log.Printf("Warning: Failed to add column %s: %v", col, err)
+				} else {
+					fmt.Printf("Column added: %s %s\n", col, colType)
 				}
-				fmt.Printf("Column added: %s\n", col)
 			}
 		}
+
+		for existingCol := range existingCols {
+			if _, found := columns[existingCol]; !found {
+				if existingCol == "created_at" || existingCol == "updated_at" || existingCol == "deleted_at" {
+					continue
+				}
+				query := fmt.Sprintf("ALTER TABLE %s DROP COLUMN IF EXISTS %s;", tableName, existingCol)
+				_, err := db.Exec(query)
+				if err != nil {
+					log.Printf("Warning: Failed to drop column %s: %v", existingCol, err)
+				} else {
+					fmt.Printf("Column dropped: %s\n", existingCol)
+				}
+			}
+		}
+
 		fmt.Printf("AutoMigration completed for existing table: %s\n", tableName)
 	} else {
 		var fieldDefs []string
@@ -69,7 +87,7 @@ func tableExists(db *sql.DB, tableName string) bool {
 
 func getExistingColumns(db *sql.DB, tableName string) map[string]bool {
 	query := `
-		SELECT column_name 
+		SELECT column_name, data_type, is_nullable, column_default
 		FROM information_schema.columns 
 		WHERE table_schema = 'public' AND table_name = $1;
 	`
@@ -81,17 +99,21 @@ func getExistingColumns(db *sql.DB, tableName string) map[string]bool {
 	defer func(rows *sql.Rows) {
 		err := rows.Close()
 		if err != nil {
-
+			log.Printf("Error closing rows: %v", err)
 		}
 	}(rows)
 
 	columns := make(map[string]bool)
 	for rows.Next() {
-		var col string
-		if err := rows.Scan(&col); err != nil {
+		var colName, dataType, isNullable string
+		var columnDefault sql.NullString
+		if err := rows.Scan(&colName, &dataType, &isNullable, &columnDefault); err != nil {
 			log.Fatal(err)
 		}
-		columns[col] = true
+		columns[colName] = true
+
+		// Log column details for debugging
+		fmt.Printf("Existing column: %s (type: %s, nullable: %s)\n", colName, dataType, isNullable)
 	}
 	return columns
 }

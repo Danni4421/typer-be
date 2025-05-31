@@ -2,6 +2,7 @@ package validator
 
 import (
 	"errors"
+	"strings"
 	"typer/package/exceptions"
 
 	validator "github.com/go-playground/validator/v10"
@@ -12,13 +13,23 @@ type Validatable interface {
 	ErrorMessages() map[string]string
 }
 
-func Validate(ctx *fiber.Ctx, dto interface{}) error{
+func Validate(ctx *fiber.Ctx, dto any) error {
 	if err := ctx.BodyParser(dto); err != nil {
-		ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error": "Invalid request body",
-			"details": err.Error(),
-		})
-		return err
+		errorMsg := err.Error()
+		if strings.Contains(errorMsg, "invalid character") || strings.Contains(errorMsg, "unexpected end") {
+			return &exceptions.ValidationError{
+				Message: "Invalid JSON format",
+				Errors: map[string]string{
+					"body": "JSON syntax error: " + errorMsg + ". Make sure all strings are quoted with double quotes.",
+				},
+			}
+		}
+		return &exceptions.ValidationError{
+			Message: "Invalid request body",
+			Errors: map[string]string{
+				"body": "Failed to parse request body: " + errorMsg,
+			},
+		}
 	}
 
 	validate := validator.New()
@@ -36,12 +47,18 @@ func Validate(ctx *fiber.Ctx, dto interface{}) error{
 			for _, fieldErr := range validationErrors {
 				field := fieldErr.Field()
 				tag := fieldErr.Tag()
-				key := field + "." + tag
+
+				var key string
+				if fieldErr.Namespace() != fieldErr.Field() {
+					key = field + "." + tag
+				} else {
+					key = field + "." + tag
+				}
 
 				if msg, exists := customMessages[key]; exists {
 					errorBag[field] = msg
 				} else {
-					errorBag[field] = field + " is invalid"
+					errorBag[field] = generateDefaultMessage(field, tag, fieldErr)
 				}
 			}
 		}
@@ -53,4 +70,19 @@ func Validate(ctx *fiber.Ctx, dto interface{}) error{
 	}
 
 	return nil
+}
+
+func generateDefaultMessage(field, tag string, fieldErr validator.FieldError) string {
+	switch tag {
+	case "required":
+		return field + " is required"
+	case "min":
+		return field + " must have at least " + fieldErr.Param() + " items"
+	case "max":
+		return field + " cannot have more than " + fieldErr.Param() + " items"
+	case "dive":
+		return "Invalid items in " + field
+	default:
+		return field + " is invalid"
+	}
 }

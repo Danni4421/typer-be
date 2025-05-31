@@ -7,8 +7,10 @@ import (
 )
 
 var (
-	UserController *controllers.UserController
-	AuthController *controllers.AuthController
+	UserController     *controllers.UserController
+	AuthController     *controllers.AuthController
+	LanguageController *controllers.LanguageController
+	WordController     *controllers.WordController
 )
 
 func SetupControllers() {
@@ -27,6 +29,14 @@ func SetupControllers() {
 		DB: database.DB,
 	}
 
+	languageService := services.LanguageService{
+		DB: database.DB,
+	}
+
+	wordService := services.WordService{
+		DB: database.DB,
+	}
+
 	// Define controllers
 	// The controller are initialized with their respective services
 	// Then they are assigned to the endpoints in the bindRoutes function
@@ -37,5 +47,14 @@ func SetupControllers() {
 	AuthController = &controllers.AuthController{
 		AuthService: &authService,
 		JWTService:  &jwtService,
+	}
+
+	LanguageController = &controllers.LanguageController{
+		LanguageService: &languageService,
+	}
+
+	WordController = &controllers.WordController{
+		LanguageService: &languageService,
+		WordService:     &wordService,
 	}
 }
