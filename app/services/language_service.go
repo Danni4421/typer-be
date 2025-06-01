@@ -2,6 +2,7 @@ package services
 
 import (
 	"database/sql"
+	"strings"
 	"typer/app/models"
 	"typer/package/exceptions"
 
@@ -15,7 +16,7 @@ type LanguageService struct {
 func (s *LanguageService) CreateLanguage(name string, code string) error {
 	query := `INSERT INTO languages (name, code) VALUES ($1, $2)`
 
-	_, err := s.DB.Exec(query, name, code)
+	_, err := s.DB.Exec(query, name, strings.ToUpper(code))
 
 	if err != nil {
 		if pqErr, ok := err.(*pq.Error); ok && pqErr.Code == "23505" {
@@ -90,7 +91,8 @@ func (s *LanguageService) GetLanguageByName(name string) (*models.Language, erro
 func (s *LanguageService) GetLanguageByCode(code string) (*models.Language, error) {
 	query := `SELECT id, name, code FROM languages WHERE code = $1`
 	var language models.Language
-	err := s.DB.QueryRow(query, code).Scan(&language.ID, &language.Name, &language.Code)
+	err := s.DB.QueryRow(query, strings.ToUpper(code)).Scan(&language.ID, &language.Name, &language.Code)
+
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return nil, &exceptions.ClientError{
@@ -108,7 +110,7 @@ func (s *LanguageService) GetLanguageByCode(code string) (*models.Language, erro
 
 func (s *LanguageService) DeleteLanguageByCode(code string) error {
 	query := `DELETE FROM languages WHERE code = $1`
-	result, err := s.DB.Exec(query, code)
+	result, err := s.DB.Exec(query, strings.ToUpper(code))
 	if err != nil {
 		return &exceptions.ServerError{
 			Code:    500,

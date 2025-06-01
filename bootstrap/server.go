@@ -41,7 +41,7 @@ func App() {
 	routes.BindPublicRoutes(app)
 
 	// Start the server and listen on port 3000 by default
-	err := app.Listen(":3000")
+	err := app.Listen(":7654")
 
 	if err != nil {
 		panic(err)
